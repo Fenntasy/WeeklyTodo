@@ -1,0 +1,84 @@
+<!DOCTYPE html5>
+<head>
+	<style>
+		.checked span {
+			text-decoration: line-through;
+		}
+	</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="bower_components/react/react.js"></script>
+<script src="bower_components/react/JSXTransformer.js"></script>
+<script type="text/jsx">
+
+/** @jsx React.DOM */
+var TodoElement = React.createClass({
+	getInitialState: function() {
+		return {checked: false, text: '', editing: false};
+	},
+	componentDidMount: function() {
+		this.setState({text: this.props.text});
+	},
+	onChange: function(e) {
+		this.setState({text: e.target.value});
+	},
+	edit: function() {
+		this.setState({editing: true});
+	},
+	save: function() {
+		this.setState({editing: false});
+	},
+	toggleCheck: function() {
+		this.setState({checked: !this.state.checked});
+	},
+	render: function() {
+		if (!this.state.editing) {
+			console.log(this.state.checked);
+			return (
+				<li className={this.state.checked ? 'checked' : ''}><span onClick={this.edit}>{this.state.text}</span><button onClick={this.toggleCheck}>v</button></li>
+			);
+		} else {
+			return (
+				<li><input onChange={this.onChange} type="text" value={this.state.text} /><button onClick={this.save}>Save</button></li>
+			);
+		}
+	}
+});
+
+var TodoList = React.createClass({
+	render: function() {
+		var createItem = function(itemText) {
+			return <TodoElement text={itemText} />;
+		};
+		return <ul>{this.props.items.map(createItem)}</ul>;
+	}
+});
+var TodoApp = React.createClass({
+	getInitialState: function() {
+		return {items: [], text: ''};
+	},
+	onChange: function(e) {
+		this.setState({text: e.target.value});
+	},
+	handleSubmit: function(e) {
+		e.preventDefault();
+		var nextItems = this.state.items.concat([this.state.text]);
+		var nextText = '';
+		this.setState({items: nextItems, text: nextText});
+	},
+	render: function() {
+		return (
+			<div>
+				<h3>TODO</h3>
+				<TodoList items={this.state.items} />
+				<form onSubmit={this.handleSubmit}>
+					<input onChange={this.onChange} value={this.state.text} />
+					<button>{'Add #' + (this.state.items.length + 1)}</button>
+				</form>
+			</div>
+			);
+	}
+});
+React.renderComponent(<TodoApp />, document.getElementById('app'));
+</script>
