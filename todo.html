@@ -1,4 +1,4 @@
-<!DOCTYPE html5>
+	<!DOCTYPE html5>
 <head>
 	<style>
 		.checked span {
@@ -14,46 +14,38 @@
 
 /** @jsx React.DOM */
 var TodoElement = React.createClass({
-	getInitialState: function() {
-		return {checked: false, text: '', editing: false};
-	},
-	componentDidMount: function() {
-		this.setState({text: this.props.text});
-	},
-	onChange: function(e) {
-		this.setState({text: e.target.value});
-	},
-	edit: function() {
-		this.setState({editing: true});
-	},
-	save: function() {
-		this.setState({editing: false});
+	delete: function() {
+		this.props.onRemove(this.props.index);
 	},
 	toggleCheck: function() {
-		this.setState({checked: !this.state.checked});
+		this.props.onCheck(this.props.index);
 	},
 	render: function() {
-		if (!this.state.editing) {
-			console.log(this.state.checked);
-			return (
-				<li className={this.state.checked ? 'checked' : ''}><span onClick={this.edit}>{this.state.text}</span><button onClick={this.toggleCheck}>v</button></li>
-			);
-		} else {
-			return (
-				<li><input onChange={this.onChange} type="text" value={this.state.text} /><button onClick={this.save}>Save</button></li>
-			);
-		}
+		return (
+			<li className={this.props.checked ? 'checked' : ''}>
+				<span onClick={this.edit}>{this.props.text}</span>
+				<button onClick={this.toggleCheck}>v</button>
+				<button onClick={this.delete}>x</button>
+			</li>
+		);
 	}
 });
 
 var TodoList = React.createClass({
+	handleRemove: function(index) {
+		this.props.onRemove(index);
+	},
+	handleCheck: function(index) {
+		this.props.onCheck(index);
+	},
 	render: function() {
-		var createItem = function(itemText) {
-			return <TodoElement text={itemText} />;
+		var createItem = function(itemText, index) {
+			return <TodoElement checked={itemText.checked} index={index} onCheck={this.handleCheck} onRemove={this.handleRemove} text={itemText.text} />;
 		};
-		return <ul>{this.props.items.map(createItem)}</ul>;
+		return <ul>{this.props.items.map(createItem, this)}</ul>;
 	}
 });
+
 var TodoApp = React.createClass({
 	getInitialState: function() {
 		return {items: [], text: ''};
@@ -62,19 +54,29 @@ var TodoApp = React.createClass({
 		this.setState({text: e.target.value});
 	},
 	handleSubmit: function(e) {
-		e.preventDefault();
-		var nextItems = this.state.items.concat([this.state.text]);
+		e.preventDefault();  
+		var nextItems = this.state.items.concat([{text: this.state.text, checked: false}]);
 		var nextText = '';
 		this.setState({items: nextItems, text: nextText});
+	},
+	handleCheck: function(index) {
+		var items = this.state.items;
+		items[index].checked = !items[index].checked;
+		this.setState({items: items});
+	},
+	handleRemove: function(index) {
+		var items = this.state.items;
+		delete items[index];
+		this.setState({items: items});
 	},
 	render: function() {
 		return (
 			<div>
 				<h3>TODO</h3>
-				<TodoList items={this.state.items} />
+				<TodoList items={this.state.items} onCheck={this.handleCheck} onRemove={this.handleRemove} />
 				<form onSubmit={this.handleSubmit}>
 					<input onChange={this.onChange} value={this.state.text} />
-					<button>{'Add #' + (this.state.items.length + 1)}</button>
+					<button>Add</button>
 				</form>
 			</div>
 			);
